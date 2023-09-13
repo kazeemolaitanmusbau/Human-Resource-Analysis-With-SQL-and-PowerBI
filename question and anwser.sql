@@ -1,4 +1,11 @@
 -- 1. what is the employee id and the name of oldest and the youngest employee in each of the department
+select h.emp_id, concat(h.first_name, " ", h.last_name) fullname, h.department , h.age oldest
+from `hr data` h
+left join
+(select department, min(birthdate) d
+from `hr data` group by department)sub
+on h.department=sub.department 
+where h.birthdate = d;     
 
 -- 2. what is the break down employee in the location state and city
 
@@ -74,4 +81,4 @@ year(`hire date`) hire
 FROM `hr data`
 GROUP BY hire) select *, (`count of term employee`/  `count of current employee`) * 100 rate from a;
 
--- WHAT IS THE TENURE DISTRIBUTION FOR EACH DEPARTMENT
+-- 14  WHAT IS THE TENURE DISTRIBUTION FOR EACH DEPARTMENT
