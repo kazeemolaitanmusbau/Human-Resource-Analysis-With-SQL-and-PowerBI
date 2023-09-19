@@ -1,13 +1,16 @@
 -- 1. what is the employee id and the name of oldest and the youngest employee in each of the department
-select h.emp_id, concat(h.first_name, " ", h.last_name) fullname, h.department , h.age oldest
+select h.emp_id, concat(h.first_name, " ", h.last_name) fullname, h.department , h.age 
 from `hr data` h
-left join
+join
 (select department, min(birthdate) d
 from `hr data` group by department)sub
 on h.department=sub.department 
-where h.birthdate = d;     
-
--- 2. what is the break down employee in the location state and city
+join
+(select department, max(birthdate) dd
+from `hr data` group by department)subb
+on h.department=subb.department 
+where h.birthdate = dd or h.birthdate = d
+ORDER BY department; 
 
 -- 3. what is the break down of empyloyee by jobtitle wise
 CREATE VIEW `employee count` AS
@@ -68,17 +71,34 @@ GROUP BY gender, department
 ORDER BY department;
 
 -- 10. WHAT IS THE DISTRIBUTION OF JOBTITLE ACROSS THE COMPANY
+SELECT jobtitle, count(jobtitle) `count of jobtitle` from  `hr data`
+GROUP BY (jobtitle)
+ORDER BY jobtitle;
 
 -- 11. WHAT DEPARTMENT HAS THE HIGHEST TURNOVER RATE
+select h.department, count(h.department) `number of terminated employee`, `number of current employee`
+, round(( count(h.department) / (count(h.department)+ `number of current employee`))* 100, 2) `percentage of termdate employee`
+from `hr data` h join (select department, count(department) `number of current employee` from `hr data` where termdate is  null
+group by department) sub
+on h.department = sub.department
+where termdate is not null
+group by department
+order by  `percentage of termdate employee`;
 
--- 12. WHAT IS THE DISTRIBUTION OF EMPLOYEE ACROSS LOCATION BY STATE AND CITY
+-- 12. WHAT IS THE DISTRIBUTION OF EMPLOYEE ACROSS LOCATION BY STATE 
+SELECT location_state, COUNT(*) `count of employee`
+FROM `hr data`
+GROUP BY location_state;
 
 -- 13. HOW HAS THE COMPANY EMPLOYEE'S COUNT CAHNGED OVER THE  TIME BASED ON HIRE AND TERM DATES
-with a as (select 
-SUM(CASE WHEN termdate is null THEN 1 ELSE 0 END ) `count of current employee`,
-SUM(CASE WHEN termdate is not null THEN 1 ELSE 0 END ) `count of term employee`,
-year(`hire date`) hire
-FROM `hr data`
-GROUP BY hire) select *, (`count of term employee`/  `count of current employee`) * 100 rate from a;
+select `year`, `Total employee hired`, `Total employee working`, `Total employee terminated` , 
+ round(`Total employee terminated`/`Total employee hired` * 100, 2 ) `precentage of teminated per year` from
+(select  count(`hire date`) `Total employee hired`, sum(case when termdate is null then 1 else 0 end) `Total employee working`,
+sum(case when termdate is not null then 1 else 0 end) ` Total employee terminated` , year(`hire date`) `year` from `hr data`
+group by `year`) as d
+order by `year`;
+
+
+
 
 -- 14  WHAT IS THE TENURE DISTRIBUTION FOR EACH DEPARTMENT
