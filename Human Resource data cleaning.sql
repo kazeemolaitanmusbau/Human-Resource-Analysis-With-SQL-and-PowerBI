@@ -73,3 +73,5 @@ where age<0;
 
 delete from `hr data`
 where age<0;
+
+-- illustration
